@@ -38,8 +38,8 @@ def Keyborad_control():
         key=readkey()
         if key == 'w':
             fc.forward(power_val)
-            distant1 = Ultrasonic()
-            if distant1 <= 10:
+            distant1 = Ultrasonic(9,10)
+            if distant1 <= 100:
                 fc.stop()
 
         # if key=='6':
