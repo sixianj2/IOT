@@ -2,12 +2,14 @@ import picar_4wd as fc
 import sys
 import tty
 import termios
+import math
 import asyncio
 import time
 from picar_4wd.servo import Servo
 from picar_4wd.pwm import PWM
 from picar_4wd.pin import Pin
 from picar_4wd.ultrasonic import Ultrasonic
+import matplotlib.pyplot as plt
 power_val = 50
 key = 'status'
 print("If you want to quit.Please press q")
@@ -39,16 +41,23 @@ def get_distance_at(angle):
     us = Ultrasonic(Pin('D8'), Pin('D9'))
     distance = us.get_distance()
     angle_distance = [angle, distance]
-    return angle_distance
+    return distance
 
-def Keyborad_control():
-    while True:
-        global power_val
-        key=readkey()
-        if key == 'w':
-            fc.forward(power_val)
-            angel_d = get_distance_at(30)
-            print(angel_d)
+
+for angle in range(0,180,5):
+    distance = get_distance_at(angle)
+    x = math.cos(angle*math.pi/180)*distance
+    y = math.cos(angle*math.pi/180)*distance
+    plt.plot(x,y,'.')
+plt.show()
+# def Keyborad_control():
+#     while True:
+#         global power_val
+#         key=readkey()
+#         if key == 'w':
+#             fc.forward(power_val)
+#             angel_d = get_distance_at(30)
+#             print(angel_d)
             # if int(distant1.get_distance()) <=100:
             #     fc.stop()
 
