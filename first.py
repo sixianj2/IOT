@@ -32,13 +32,14 @@ def readkey(getchar_fn=None):
     c3 = getchar()
     return chr(0x10 + ord(c3) - 65)
 
-def get_distance_at(self, angle):
-    self.servo.set_angle(angle)
+def get_distance_at(angle):
+    servo = Servo(PWM("P0"), offset=10)
+    servo.set_angle(angle)
     time.sleep(0.04)
     us = Ultrasonic(Pin('D8'), Pin('D9'))
     distance = us.get_distance()
-    self.angle_distance = [angle, distance]
-    return distance
+    angle_distance = [angle, distance]
+    return angle_distance
 
 def Keyborad_control():
     while True:
