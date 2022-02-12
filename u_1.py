@@ -1,5 +1,5 @@
 import picar_4wd as fc
-
+import random
 speed = 30
 
 def main():
