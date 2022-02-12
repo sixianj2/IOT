@@ -47,8 +47,9 @@ map = np.zeros((100,100))
 for angle in range(0,180,5):
     distance = get_distance_at(angle)
     x =50+round(math.cos(angle*math.pi/180)*distance)
-    y =round(math.cos(angle*math.pi/180)*distance))
-    map[x][y] = 1
+    y =round(math.cos(angle*math.pi/180)*distance)
+    if 0<=x and x<=50 and y<=100:
+        map[x][y] = 1
 print(map)
 # def Keyborad_control():
 #     while True:
