@@ -11,7 +11,7 @@ def main():
         tmp = scan_list[3:7]
         print(tmp)
         if tmp != [2,2,2,2]:
-            direction=random.randint(1,4):
+            direction=random.randint(1,4)
             if direction == 1:
                 fc.turn_right(speed)
             if direction == 2:
