@@ -79,8 +79,8 @@ plt.show()
         #     fc.turn_right(power_val)
         # else:
         #     fc.stop()
-        if key=='q':
-            print("quit")
-            break
+        # if key=='q':
+        #     print("quit")
+        #     break
 if __name__ == '__main__':
     Keyborad_control()
