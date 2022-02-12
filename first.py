@@ -38,7 +38,7 @@ def Keyborad_control():
         key=readkey()
         if key == 'w':
             fc.forward(power_val)
-            distant1= Ultrasonic(9,10)
+            distant1= Ultrasonic([1,3],10)
 
             print(distant1.get_distance())
             # if int(distant1.get_distance()) <=100:
