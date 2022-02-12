@@ -50,6 +50,7 @@ for angle in range(0,180,5):
     y =round(math.cos(angle*math.pi/180)*distance)
     if 0<=x and x<=50 and y<=100:
         map[x][y] = 1
+        print('yes')
 print(map)
 # def Keyborad_control():
 #     while True:
@@ -83,5 +84,5 @@ print(map)
         # if key=='q':
         #     print("quit")
         #     break
-if __name__ == '__main__':
-    Keyborad_control()
+# if __name__ == '__main__':
+#     Keyborad_control()
