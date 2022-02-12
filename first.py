@@ -9,7 +9,7 @@ from picar_4wd.servo import Servo
 from picar_4wd.pwm import PWM
 from picar_4wd.pin import Pin
 from picar_4wd.ultrasonic import Ultrasonic
-import matplotlib.pyplot as plt
+import numpy as np
 power_val = 50
 key = 'status'
 print("If you want to quit.Please press q")
@@ -43,13 +43,13 @@ def get_distance_at(angle):
     angle_distance = [angle, distance]
     return distance
 
-
+map = np.zeros((100,100))
 for angle in range(0,180,5):
     distance = get_distance_at(angle)
-    x = math.cos(angle*math.pi/180)*distance
-    y = math.cos(angle*math.pi/180)*distance
-    plt.plot(x,y,'.')
-plt.show()
+    x =50+round(math.cos(angle*math.pi/180)*distance)
+    y =round(math.cos(angle*math.pi/180)*distance))
+    map[x][y] = 1
+print(map)
 # def Keyborad_control():
 #     while True:
 #         global power_val
