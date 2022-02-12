@@ -32,14 +32,22 @@ def readkey(getchar_fn=None):
     c3 = getchar()
     return chr(0x10 + ord(c3) - 65)
 
+def get_distance_at(self, angle):
+    self.servo.set_angle(angle)
+    time.sleep(0.04)
+    us = Ultrasonic(Pin('D8'), Pin('D9'))
+    distance = us.get_distance()
+    self.angle_distance = [angle, distance]
+    return distance
+
 def Keyborad_control():
     while True:
         global power_val
         key=readkey()
         if key == 'w':
             fc.forward(power_val)
-            us = Ultrasonic(Pin('D8'), Pin('D9'))
-            print(us)
+            angel_d = get_distance_at(30)
+            print(angel_d)
             # if int(distant1.get_distance()) <=100:
             #     fc.stop()
 
