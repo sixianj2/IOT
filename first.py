@@ -59,11 +59,16 @@ for angle in range(-90,90,1):
         map1[x+50][y] = 1
         plt.plot(x,y,'*')
         print('x',x,'y',y)
-print(map1)
+    
+map2=np.rot90(map1)
+print(map2)
 
 # 
+plt.xlim([-50,50])
+plt.ylim([0,100])
 plt.savefig("squares.png")
 np.savetxt('text.txt', map1, fmt='%s')
+np.savetxt('text.txt', map2, fmt='%s')
 plt.show()
 # def Keyborad_control():
 #     while True:
