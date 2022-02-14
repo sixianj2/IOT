@@ -13,7 +13,7 @@ def main():
         if tmp != [2,2,2,2]:
             direction=random.randint(1,4)
             if direction == 1:
-                fc.turn_right(speed)
+                fc.turn_left(speed)
             if direction == 2:
                 fc.turn_right(speed)
             if direction == 3:
