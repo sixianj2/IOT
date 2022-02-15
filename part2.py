@@ -26,63 +26,91 @@ my_scan_list = []
 START_ANGLE = -95
 END_ANGLE = 90
 # max detection range in cm
-MAX_DETECTION_RANGE = 30
+MAX_DETECTION_RANGE = 40
 # map grid dimension and size
 topo_shape = (25, 25)
 grid_size_in_cm = 4
 topo_map = np.zeros(topo_shape)
 
 # car position
-car_coord_raw = 25, 0
+car_coord_raw = 80, 0
 car_grid_image_coord = -1, -1
-dest_grid_image_coord = 0, 12
+dest_grid_image_coord = 0, 10
+FORWARD, BACKWARD, LEFT, RIGHT = 0, 1, 2, 3
+# Facing up initially
+car_facing_dir = FORWARD
 
-CLEARANCE = 3
+# Movement needed to go to the front, back, left, right cells based ont he current facing direction
+car_facing_dir_to_movement = {
+    FORWARD: [FORWARD, BACKWARD, LEFT, RIGHT],
+    BACKWARD: [BACKWARD, FORWARD, RIGHT, LEFT],
+    LEFT: [RIGHT, LEFT, FORWARD, BACKWARD],
+    RIGHT: [LEFT, RIGHT, BACKWARD, FORWARD]
+}
+
+
+CLEARANCE = 2
+SCAN_STEP = 10
 
 def main():
-    global car_grid_image_coord, car_coord_raw
+    global car_grid_image_coord, car_coord_raw, car_facing_dirar
     # generate numpy array
     car_grid_image_coord = get_grid_image_coord(get_grid_xy_coord(car_coord_raw))
     topo_map[car_grid_image_coord] = 3
     servo.set_angle(START_ANGLE)
     iter = 0
-    while iter == 0:
+    # while iter < 1:
+    #     move_right()
+    #     time.sleep(0.5)
+    #     iter += 1
+    # return
+    reach_target = False
+    while not reach_target:
+        # turn the car forard before scanning
+        print('rescanning surrounding')
+        turn_car_forward()
         distance_angle_list = get_distance_angles()
         #print(distance_angle_list)
         update_map(topo_map, distance_angle_list)
         iter += 1
         np.set_printoptions(threshold=np.inf)
         #print(topo_map)
-
-        #print(topo_map)
+        print(topo_map)
         path = a_star_search(topo_map, car_grid_image_coord, dest_grid_image_coord)
+        path = path[:SCAN_STEP + 1]
         print(path)
+        # draw path
         idx2 = np.array(path)
         topo_map[idx2[:, 0], idx2[:, 1]] = 2
-        cv2.imwrite('topo.jpg', topo_map * 255)
-        visualize(topo_map)
+        print('writing topo.jpg')
+        cv2.imwrite('topo_' + str(iter)+ '.jpg', topo_map * 255)
+        visualize(topo_map, 'topo_color_' + str(iter)+ '.jpg')
         print(topo_map)
-        #navigate(path)
-    # while iter != 2:
-    #
-    #     moveForward()
-    #     time.sleep(1)
-    #     moveBackward()
-    #     time.sleep(1)
-    #     moveLeft()
-    #     time.sleep(1)
-    #     moveRight()
-    #     iter +=1
+        navigate(path)
+        reach_target = car_grid_image_coord == dest_grid_image_coord
+        # time.sleep(0.5)
+        #move_left()
 
-def visualize(topo_map):
+
+def turn_car_forward():
+    global car_facing_dir
+    movements = [None, None, move_left, move_right]
+    if car_facing_dir == FORWARD or car_facing_dir == BACKWARD:
+        return
+    movement_idx = car_facing_dir_to_movement[car_facing_dir][FORWARD]
+    movements[movement_idx](going_forward = False)
+    car_facing_dir = FORWARD
+
+def visualize(topo_map, output_path='topo-color.jpg'):
     map_output_img = np.zeros((topo_shape[0], topo_shape[1], 3))
     # obstacle: red
     map_output_img[topo_map == 1] = [0, 0, 255]
     # path: green
     map_output_img[topo_map == 2] = [0, 128, 0]
     map_output_img[topo_map == 3] = [255, 0, 0]
+    print('writing images')
     # write pixels for visualization
-    cv2.imwrite('topo-color.jpg', map_output_img)
+    cv2.imwrite(output_path, map_output_img)
 
 def navigate(path):
     global car_grid_image_coord
@@ -90,24 +118,43 @@ def navigate(path):
     for next in path:
         print(f'cur car loc:{car_grid_image_coord}, need to go to: {next}')
         make_movement(car_grid_image_coord, next)
-        time.sleep(0.5)
+        #time.sleep(0.5)
+        time.sleep(2)
 
 
 def make_movement(cur_pos, next_pos):
-    global car_coord_raw, car_grid_image_coord
+    global car_coord_raw, car_grid_image_coord, car_facing_dir
+    movements = [move_forward, move_backward, move_left, move_right]
     dist = 0
-    if next_pos[0] - cur_pos[0] == 0 and next_pos[1] - cur_pos[1] == 1:
-        dist = move_right()
-        car_coord_raw = car_coord_raw[0] + dist, car_coord_raw[1]
-    elif next_pos[0] - cur_pos[0] == 0 and next_pos[1] - cur_pos[1] == -1:
-        dist = move_left()
-        car_coord_raw = car_coord_raw[0] - dist, car_coord_raw[1]
-    elif next_pos[1] - cur_pos[1] == 0 and next_pos[0] - cur_pos[0] == 1:
-        dist = move_backward()
-        car_coord_raw = car_coord_raw[0], car_coord_raw[1] - dist
-    elif next_pos[1] - cur_pos[1] == 0 and next_pos[0] - cur_pos[0] == -1:
-        dist = move_forward()
+    movement_idx = None
+    if next_pos[1] - cur_pos[1] == 0 and next_pos[0] - cur_pos[0] < 0: #== -1:
+        # next cell to the front
+        movement_idx = car_facing_dir_to_movement[car_facing_dir][FORWARD]
+        movements_func = movements[movement_idx]
+        dist = movements_func()
         car_coord_raw = car_coord_raw[0], car_coord_raw[1] + dist
+        car_facing_dir = FORWARD
+    elif next_pos[1] - cur_pos[1] == 0 and next_pos[0] - cur_pos[0] > 0:#== 1:
+        # next cell to the back
+        movement_idx = car_facing_dir_to_movement[car_facing_dir][BACKWARD]
+        movements_func = movements[movement_idx]
+        dist = movements_func()
+        car_facing_dir = BACKWARD
+        car_coord_raw = car_coord_raw[0], car_coord_raw[1] - dist
+    elif next_pos[0] - cur_pos[0] == 0 and next_pos[1] - cur_pos[1] < 0: #== -1:
+        # next cell to the left
+        movement_idx = car_facing_dir_to_movement[car_facing_dir][LEFT]
+        movements_func = movements[movement_idx]
+        dist = movements_func()
+        car_facing_dir = LEFT
+        car_coord_raw = car_coord_raw[0] - dist, car_coord_raw[1]
+    elif next_pos[0] - cur_pos[0] == 0 and next_pos[1] - cur_pos[1] > 0: #== 1:
+        # next cell to the right
+        movement_idx = car_facing_dir_to_movement[car_facing_dir][RIGHT]
+        movements_func = movements[movement_idx]
+        dist = movements_func()
+        car_facing_dir = RIGHT
+        car_coord_raw = car_coord_raw[0] + dist, car_coord_raw[1]
     else:
         print(f'something is wrong. cur position:{cur_pos} -- next position: {next_pos}')
 
@@ -193,7 +240,8 @@ def update_map(topo_map, distance_angle_list):
         print(obstacle_grid_image_coord)
         #topo_map[obstacle_grid_image_coord] = 1
         row, col = obstacle_grid_image_coord
-        topo_map[row, col - CLEARANCE : col + CLEARANCE] = 1
+        #topo_map[row, col - CLEARANCE : col + CLEARANCE] = 1
+        topo_map[row - CLEARANCE : row + CLEARANCE + 1, col - CLEARANCE: col + CLEARANCE + 1] = 1
 
         if previous_reading and abs(previous_reading[0] - angle) <= STEP_IN_DEGREE:
             extrapolate(previous_reading[1], obstacle_xy_coord_raw, topo_map)
@@ -213,6 +261,9 @@ def extrapolate(start_coord_xy, end_coord_xy, topo_map):
         # get grid coordinate
         extrapolated_xy_coord_grid = get_grid_xy_coord((new_x, new_y))
         extrapolated_grid_image_coord = get_grid_image_coord(extrapolated_xy_coord_grid)
+
+        if extrapolated_grid_image_coord[0] >= topo_shape[0] or extrapolated_grid_image_coord[1] >= topo_shape[1]:
+            break
         print(f'marking cell {extrapolated_grid_image_coord} as 1')
         topo_map[extrapolated_grid_image_coord] = 1
         new_x = new_x + grid_size_in_cm
@@ -228,28 +279,42 @@ def get_grid_image_coord(xy_coord_grid):
 
 
 def move_forward():
-    # for moving forward around 4.1cm
-    return move(fc.forward, 50, 0.25)
-
+    # for moving forward around 4cm
+    #return move(fc.forward, 50, 0.25)
+    return move(fc.forward, 20, 0.1)
 
 def move_backward():
     # for moving forward around 4.1cm
-    return move(fc.backward, 30, 0.25)
+    return move(fc.backward, 20, 0.1)
 
 
-def move_left():
+def move_left(going_forward = True):
     # for moving to the left
-    move(fc.turn_left, 50, 0.76)
+    # green battery
+    #move(fc.turn_left, 50, 0.76)
+    # pink battery
+    #move(fc.turn_left, 50, 0.74)
+    move(fc.turn_left, 18, 1.125)
     time.sleep(0.5)
-    return move_forward()
+    if going_forward:
+        return move_forward()
+    return 0
 
 
-def move_right():
+def move_right(going_forward = True):
     # for moving to the left
-    move(fc.turn_right, 50, 0.65)
-    time.sleep(0.5)
-    return move_forward()
+    # green battery
+    #move(fc.turn_right, 50, 0.65)
+    # pink battery
+    #move(fc.turn_right, 50, 0.60)
+    # green battery
+    #move(fc.turn_right, 18, 1.125)
+    move(fc.turn_right, 18, 1)
 
+    time.sleep(0.5)
+    if going_forward:
+        return move_forward()
+    return 0
 
 def move(func, speed, duration):
     """ make the move based on speed and duration and return the distance travelled"""
@@ -260,11 +325,13 @@ def move(func, speed, duration):
     for i in range(1):
         time.sleep(duration)
         cur_speed = speed4()
-        x += cur_speed * 0.1
+        x += cur_speed * duration
         #print("%smm/s" % cur_speed)
     print(f'distance: {x} cm')
     speed4.deinit()
     fc.stop()
+    # todo: make sure this is correct
+    x = 4
     return x
 
 
