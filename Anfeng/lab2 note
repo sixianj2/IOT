@@ -1,0 +1,35 @@
+car_ap
+该lab总共有4个部分，第一个部分创建蓝牙连接
+
+树莓派 bt    E4:5F:01:81:08:1B
+虚拟机 bt    00:1A:7D:DA:71:15
+虚拟机 bt 2  00:E0:4C:E4:69:03
+
+bluetooth
+解除蓝牙设备的阻止状态。sudo rfkill unblock bluetooth
+确保蓝牙服务处于活动状态 sudo service bluetooth start
+
+bluetoothctl 
+	power on/off 打开电源或者关闭
+    agent on
+    default-agent
+	scan on/off 开始扫描
+	pair xx:xx:xx:xx:xx 匹配某个设备
+	paired-devices显示已经匹配的设备
+	connect xx:xx:xx:xx:xx 连接蓝牙设备
+	sudo bluetoothctl discoverable on
+
+
+sudo 启动 vscode 
+sudo code --user-data-dir="~/.vscode-root"
+
+虚拟机端口 192.168.85.128
+树莓派端口 192.168.0.125
+
+如果保存不了使用命令
+sudo chown -R ubuntu ~
+
+安装 electron 
+npm install -g electron --unsafe-perm=true --allow-root
+
+npm start 不带sudo
