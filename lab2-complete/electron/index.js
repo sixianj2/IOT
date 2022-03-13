@@ -13,7 +13,7 @@ function send_data(data) {
         console.log('connected to server!');
         //console.log(data.toString());
         // send the message
-        client.write(`${data}\r\n`);
+        client.write(`${data}`);
     });
 
 
@@ -28,7 +28,7 @@ function client(){
         // 'connect' listener.
         console.log('connected to server!');
         // send the message
-        client.write(`data\r\n`);
+        client.write(`data`);
     });
     
     // get the data from the server
