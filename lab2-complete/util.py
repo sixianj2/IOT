@@ -3,6 +3,7 @@ import json
 import subprocess
 
 cur_dir = "stopped"
+speed = 10
 
 
 def handle_command(command):
@@ -11,22 +12,22 @@ def handle_command(command):
 
     if command == b"forward":
         # move forward
-        fc.forward(30)
+        fc.forward(speed)
         set_dir('forward')
         return get_dir()
     elif command == b"backward":
         # move backward
-        fc.backward(30)
+        fc.backward(speed)
         set_dir('backward')
         return get_dir()
     elif command == b"left":
         # move left
-        fc.turn_left(30)
+        fc.turn_left(speed)
         set_dir('left')
         return get_dir()
     elif command == b"right":
         # move right
-        fc.turn_right(30)
+        fc.turn_right(speed)
         set_dir('right')
         return get_dir()
     elif command == b"stop":
