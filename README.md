@@ -1,7 +1,7 @@
  ### Code:
 The code was made from google colab and saved as CS546_Hw1.ipynb and cs546_hw1.py\
 Upload the kaggle.json file in google colab folder\
-Run the colab code from the top to the bottom will get all the results.\
+Run the colab code from the top to the bottom will get all the results.
 
 ### Environment:
 
